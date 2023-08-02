@@ -1,3 +1,7 @@
+"""
+Functions for target and lead time conversions
+"""
+
 import datetime as dt
 
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']

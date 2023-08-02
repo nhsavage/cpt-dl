@@ -1,4 +1,28 @@
+"""
+A module to support the creation of ingrid URLs from templates
+and loading of data using those URLs 
 
+Several functions accept kwargs. Some of these are common to all
+types of downloads and others are specific to the download type
+and/or function 
+
+    filetype: File format to save as. Must be 'cptv10.tsv' or 'data.nc', 
+              Required for download and evaluate_url functions 
+    fdate: date of forecast as datetime object e.g. dt.datetime.now()
+    first_year: integer with first year of data to retrieve e.g. 1982
+    final_year:  integer with final year of data to retrieve e.g.2018, 
+    predictor_extent: dictionary to define spatial extent of predictor data e.g.
+      { 'east': 90, 'west': 0, 'north': 90, 'south': 0}, 
+    predictand_extent: as predictor_extent but for predictand data (observations)
+    lead_low(float): lower value for lead time in months (forecasts and hindcasts) e.g. 1.5
+    lead_high(float): higher value for lead time in months (forecasts and hindcasts) e.g. 3.5
+    target(str): Target period for forecast e.g.  'Jul-Sep'
+    pressure: pressure level for UA and VA only (units?)
+
+optional:
+    ensemblemean(:obj:`str`, default True): whether to download ensemble mean (True) or members (False)
+
+"""
 from pathlib import Path 
 import json, getpass, requests, sys
 import datetime as dt 
@@ -6,6 +30,7 @@ import xarray as xr
 import cptio as cio 
 
 def read_dlauth():
+    """Read IRIDLAUTH file and return authorization key if already set up"""
     if not (Path.home().absolute() / '.pycpt_dlauth').is_file():
         print('You need to set up an IRIDLAUTH! Please set up an IRI account here (https://iridl.ldeo.columbia.edu/auth/signup), then use cptdl.setup_dlauth("your_iri_login_email") to setup the cookie. This only needs to happen once!  ')
         return None
@@ -54,6 +79,19 @@ def c3s_login(email):
 
 
 def setup_dlauth(email):
+    """
+    set up DLAuth with cptdl by making an account at https://iridl.ldeo.columbia.edu/auth/signup
+    and then passing the email and password you set up to this function
+
+    Key is saved in IRIDLAUTH and just read on subsequent execution
+
+    Returns:
+        authorization key
+
+    Example:
+        cptdl.setup_dlauth("pycpt.dev@gmail.com")
+        PASSWORD: [enter your password here- it will be invisible] 
+    """
     if not (Path.home().absolute() / '.pycpt_dlauth').is_file():
         pswd = getpass.getpass('DLAUTH PASSWORD: ').strip()
         with requests.Session() as s:
@@ -72,15 +110,50 @@ def setup_dlauth(email):
         
 
 class PyCPT_ERROR(Exception):
+    """PyCPT Exception subclassing Exception"""
     pass    
 
 def evaluate_url(url, ensemblemean=True, **kwargs):
+    """
+    cptdl.evaluate_url accepts arbitrary keyword arguments, and 
+    inserts them dynamically into the url template provided as 
+    the first positional argument, url.
+
+    Args:
+        url(:obj:`str`): The URL to download from.
+        ensemblemean(:obj:`str`): whether to download ensemble mean (True) or members (False)
+        See module docstring for kwargs
+
+    Example:
+        formatted_url = cptdl.evaluate_url(url, predictor_extent={'east':130, ...}, ... )
+    """
     from .targetleadconv import seasonal_target, seasonal_target_length_monthly, seasonal_target_length, threeletters
     locals().update(**kwargs)
     return eval('f"{}"'.format(url))
 
 
 def simple_download(url, dest, verbose=False, use_dlauth=False):
+    """
+    downloads the provided url to the provided destination file path
+    unlike using curl won't download 404 not-found messages
+
+    Args:
+        url(:obj:`str`): The URL to download from.
+        dest(:obj:`str`): The location to download to.
+        verbose(bool, optional): if True show a progress bar for the download, defaults to False
+        use_dlauth(bool, optional): if True will attempt to read ~/.pycpt_dlauth 
+            and pass it as a cookie in the request to the URL, defaults to False.
+
+    Returns:
+        path(:obj:`str`): the full location of the download
+
+    Example:
+
+        import cptdl as dl 
+        docspage = dl.simple_download(
+            "https://raw.githubusercontent.com/kjhall-iri/cpt-dl/master/src/utilities.py", 
+            "/Path/To/Destination/utilities/py") 
+    """
     if verbose:
         print('URL: {}'.format(url))
         print()
@@ -112,6 +185,23 @@ def simple_download(url, dest, verbose=False, use_dlauth=False):
 
 
 def download(baseurl, dest, verbose=False, use_dlauth=True, **kwargs):
+    """
+    convenience function thats combines
+    the evaluation of a template URL
+    the download of the file
+    opening of that file with cptio
+
+    Args:
+        baseurl(:obj:`str`): The URL template 
+        dest(:obj:`str`): The location to download to.
+        verbose(bool, optional): if True show a progress bar for the download, defaults to False
+        use_dlauth(bool, optional): if True will attempt to read ~/.pycpt_dlauth 
+            and pass it as a cookie in the request to the URL, defaults to False.
+        kwargs: see module docstring
+    
+    Example:
+        dataarray = cptdl.download(url, destfile, **kwargs) which returns an Xarray.DataArray
+    """
     if 'filetype' in kwargs.keys():
         format = kwargs['filetype']
     else: 

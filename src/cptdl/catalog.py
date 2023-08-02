@@ -1,3 +1,11 @@
+"""
+Pre-made Ingrid url templates
+
+hindcasts stores urls designed for accessing GCM hindcasts and CPT training data
+observations stores urls designed for downloading observations data
+forecasts stores urls designed for downloading individual GCM forecasts. 
+"""
+
 hindcasts = { 
 	'CanCM4i.PRCP': "https://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/.CanSIPS-IC3/.CanCM4i-IC3/.HINDCAST/.MONTHLY/.prec/SOURCES/.Models/.NMME/.CanCM4i/.FORECAST/.MONTHLY/.prec/S/(1%20Jan%202021)/(1%20Sep%202021)/RANGEEDGES/appendstream/SOURCES/.Models/.NMME/.CanSIPS-IC3/.CanCM4i-IC3/.FORECAST/.MONTHLY/.prec/appendstream/S/%280000%201%20{threeletters[fdate.month]}%20{first_year}-{final_year}%29/VALUES/L/{lead_low}/{lead_high}/RANGEEDGES/%5BL%5D//keepgrids/average/{'%5BM%5D/average/' if ensemblemean else ''}Y/{predictor_extent['south']}/{predictor_extent['north']}/RANGEEDGES/X/{predictor_extent['west']}/{predictor_extent['east']}/RANGEEDGES/{seasonal_target_length(target)}/mul/-999/setmissing_value/{'%5BX/Y%5D%5BL/S/add%5D/cptv10.tsv' if filetype == 'cptv10.tsv' and ensemblemean else '%5BX/Y%5D%5BL/S/add/M%5D/cptv10.tsv' if filetype =='cptv10.tsv' and not ensemblemean else filetype}",
 	'CanCM4i.T2M': "https://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/.CanSIPS-IC3/.CanCM4i-IC3/.HINDCAST/.MONTHLY/.tref/SOURCES/.Models/.NMME/.CanCM4i/.FORECAST/.MONTHLY/.tref/S/(1%20Jan%202021)/(1%20Sep%202021)/RANGEEDGES/appendstream/SOURCES/.Models/.NMME/.CanSIPS-IC3/.CanCM4i-IC3/.FORECAST/.MONTHLY/.tref/appendstream/S/%280000%201%20{threeletters[fdate.month]}%20{first_year}-{final_year}%29/VALUES/L/{lead_low}/{lead_high}/RANGEEDGES/%5BL%5D//keepgrids/average/{'%5BM%5D/average/' if ensemblemean else ''}Y/{predictor_extent['south']}/{predictor_extent['north']}/RANGEEDGES/X/{predictor_extent['west']}/{predictor_extent['east']}/RANGEEDGES/-999/setmissing_value/{'%5BX/Y%5D%5BL/S/add%5D/cptv10.tsv' if filetype == 'cptv10.tsv' and ensemblemean else '%5BX/Y%5D%5BL/S/add/M%5D/cptv10.tsv' if filetype =='cptv10.tsv' and not ensemblemean else filetype},",
